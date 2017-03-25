@@ -1,0 +1,9 @@
+./run_strassen_4.sh
+./run_strassen_8.sh
+./run_strassen_16.sh
+./run_strassen_32.sh
+./run_strassen_64.sh
+./run_strassen_128.sh
+./run_strassen_256.sh
+./run_strassen_512.sh
+./run_strassen_1024.sh

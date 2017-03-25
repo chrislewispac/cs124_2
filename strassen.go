@@ -16,6 +16,25 @@ type MatrixFun struct {
 	a   [][]int
 	b   [][]int
 	res [][]int
+	a11 [][]int
+	a12 [][]int
+	a21 [][]int
+	a22 [][]int
+	b11 [][]int
+	b12 [][]int
+	b21 [][]int
+	b22 [][]int
+	c11 [][]int
+	c12 [][]int
+	c21 [][]int
+	c22 [][]int
+	p1  [][]int
+	p2  [][]int
+	p3  [][]int
+	p4  [][]int
+	p5  [][]int
+	p6  [][]int
+	p7  [][]int
 }
 
 func main() {
@@ -26,12 +45,15 @@ func main() {
 	ret := BuildMatricesFromInput(dimensions, inputfile)
 
 	if custom == 1 { //run classic
-		_ = ClassicMatrixMult_K_First(&ret, dimensions)
+		_ = ClassicMatrixMult(ret.a, ret.b)
 	} else if custom == 2 { //run strassen
-		_ = StrassenMatrixMult(ret.a, ret.b)
-	} else if custom == 0 {
-		r := ClassicMatrixMult_K_First(&ret, dimensions)
-		PrintSpecOutput(&r, dimensions)
+		_ = StrassenMatrixMult(&ret, 16)
+	} else if custom == 0 { //TODO MAKE THIS RUN THE OPTIMIZED VERSION OF STRASSEN
+		c := ClassicMatrixMult(ret.a, ret.b)
+		ret.res = c
+		PrintSpecOutput(&ret, dimensions)
+	} else {
+		_ = StrassenMatrixMult(&ret, custom)
 	}
 
 	os.Remove(inputfile)
@@ -117,130 +139,60 @@ func SubtractMatrices(a [][]int, b [][]int) [][]int {
 	return c
 }
 
-func StrassenMatrixMult(a [][]int, b [][]int) [][]int {
-	dimensions := len(a[0])
+func StrassenMatrixMult(matrix_set *MatrixFun, transition int) MatrixFun {
+
+	dimensions := len(matrix_set.a[0])
 	new_dimensions := dimensions / 2
-	c := [][]int{}
-	count := 0
-	for count < dimensions {
-		y := make([]int, dimensions)
-		c = append(c, y)
-		count++
-	}
 
-	if dimensions == 4 {
-		b11 := [][]int{}
-		b12 := [][]int{}
-		b21 := [][]int{}
-		b22 := [][]int{}
-		a11 := [][]int{}
-		a12 := [][]int{}
-		a21 := [][]int{}
-		a22 := [][]int{}
-
-		for i := 0; i < dimensions; i++ {
-			if i < new_dimensions {
-				b11 = append(b11, b[i][:new_dimensions])
-				b12 = append(b12, b[i][new_dimensions:])
-				a11 = append(a11, a[i][:new_dimensions])
-				a12 = append(a12, a[i][new_dimensions:])
-			} else {
-				b21 = append(b21, b[i][:new_dimensions])
-				b22 = append(b22, b[i][new_dimensions:])
-				a21 = append(a21, a[i][:new_dimensions])
-				a22 = append(a22, a[i][new_dimensions:])
-			}
-
-		}
-
-		c11 := AddMatrices(ClassicMatrixMult(a11, b11), ClassicMatrixMult(a12, b21))
-		c12 := AddMatrices(ClassicMatrixMult(a11, b12), ClassicMatrixMult(a12, b22))
-		c21 := AddMatrices(ClassicMatrixMult(a21, b11), ClassicMatrixMult(a22, b21))
-		c22 := AddMatrices(ClassicMatrixMult(a21, b12), ClassicMatrixMult(a22, b22))
-
-		y := 0
-		for x := 0; x < dimensions; x++ {
-			if x < (dimensions / 2) {
-				c[x] = append(c11[x], c12[x]...)
-			} else {
-				c[x] = append(c21[y], c22[y]...)
-				y++
-			}
-		}
-		return c
+	if dimensions <= transition {
+		return ClassicMatrixMult_K_First(matrix_set)
 	} else {
-
-		//build submatrices
-		b11 := [][]int{}
-		b12 := [][]int{}
-		b21 := [][]int{}
-		b22 := [][]int{}
-		a11 := [][]int{}
-		a12 := [][]int{}
-		a21 := [][]int{}
-		a22 := [][]int{}
 		for i := 0; i < dimensions; i++ {
 			if i < new_dimensions {
-				b11 = append(b11, b[i][:new_dimensions])
-				b12 = append(b12, b[i][new_dimensions:])
-				a11 = append(a11, a[i][:new_dimensions])
-				a12 = append(a12, a[i][new_dimensions:])
+				matrix_set.b11 = append(matrix_set.b11, matrix_set.b[i][:new_dimensions])
+				matrix_set.b12 = append(matrix_set.b12, matrix_set.b[i][new_dimensions:])
+				matrix_set.a11 = append(matrix_set.a11, matrix_set.a[i][:new_dimensions])
+				matrix_set.a12 = append(matrix_set.a12, matrix_set.a[i][new_dimensions:])
 			} else {
-				b21 = append(b21, b[i][:new_dimensions])
-				b22 = append(b22, b[i][new_dimensions:])
-				a21 = append(a21, a[i][:new_dimensions])
-				a22 = append(a22, a[i][new_dimensions:])
+				matrix_set.b21 = append(matrix_set.b21, matrix_set.b[i][:new_dimensions])
+				matrix_set.b22 = append(matrix_set.b22, matrix_set.b[i][new_dimensions:])
+				matrix_set.a21 = append(matrix_set.a21, matrix_set.a[i][:new_dimensions])
+				matrix_set.a22 = append(matrix_set.a22, matrix_set.a[i][new_dimensions:])
 			}
 
 		}
 
-		s1 := SubtractMatrices(b12, b22)
-		s2 := AddMatrices(a11, a12)
-		s3 := AddMatrices(a21, a22)
-		s4 := SubtractMatrices(b21, b11)
-		s5 := AddMatrices(a11, a22)
-		s6 := AddMatrices(b11, b22)
-		s7 := SubtractMatrices(a12, a22)
-		s8 := AddMatrices(b21, b22)
-		s9 := SubtractMatrices(a11, a21)
-		s10 := AddMatrices(b11, b12)
+		matrix_set.p1 = StrassenMatrixMult(&MatrixFun{a: matrix_set.a11, b: SubtractMatrices(matrix_set.b12, matrix_set.b22)}, transition).res
+		matrix_set.p2 = StrassenMatrixMult(&MatrixFun{a: AddMatrices(matrix_set.a11, matrix_set.a12), b: matrix_set.b22}, transition).res
+		matrix_set.p3 = StrassenMatrixMult(&MatrixFun{a: AddMatrices(matrix_set.a21, matrix_set.a22), b: matrix_set.b11}, transition).res
+		matrix_set.p4 = StrassenMatrixMult(&MatrixFun{a: matrix_set.a22, b: SubtractMatrices(matrix_set.b21, matrix_set.b11)}, transition).res
+		matrix_set.p5 = StrassenMatrixMult(&MatrixFun{a: AddMatrices(matrix_set.a11, matrix_set.a22), b: AddMatrices(matrix_set.b11, matrix_set.b22)}, transition).res
+		matrix_set.p6 = StrassenMatrixMult(&MatrixFun{a: SubtractMatrices(matrix_set.a12, matrix_set.a22), b: AddMatrices(matrix_set.b21, matrix_set.b22)}, transition).res
+		matrix_set.p7 = StrassenMatrixMult(&MatrixFun{a: SubtractMatrices(matrix_set.a11, matrix_set.a21), b: AddMatrices(matrix_set.b11, matrix_set.b12)}, transition).res
 
-		p1 := StrassenMatrixMult(a11, s1)
-		p2 := StrassenMatrixMult(s2, b22)
-		p3 := StrassenMatrixMult(s3, b11)
-		p4 := StrassenMatrixMult(a22, s4)
-		p5 := StrassenMatrixMult(s5, s6)
-		p6 := StrassenMatrixMult(s7, s8)
-		p7 := StrassenMatrixMult(s9, s10)
+		matrix_set.c11 = AddMatrices(SubtractMatrices(AddMatrices(matrix_set.p5, matrix_set.p4), matrix_set.p2), matrix_set.p6)
+		matrix_set.c12 = AddMatrices(matrix_set.p1, matrix_set.p2)
+		matrix_set.c21 = AddMatrices(matrix_set.p3, matrix_set.p4)
+		matrix_set.c22 = SubtractMatrices(SubtractMatrices(AddMatrices(matrix_set.p5, matrix_set.p1), matrix_set.p3), matrix_set.p7)
 
-		n1 := AddMatrices(p5, p4)
-		n2 := SubtractMatrices(n1, p2)
-		n3 := AddMatrices(n2, p6)
-
-		n4 := AddMatrices(p5, p1)
-		n5 := SubtractMatrices(n4, p3)
-		n6 := SubtractMatrices(n5, p7)
-
-		c11 := n3
-		c12 := AddMatrices(p1, p2)
-		c21 := AddMatrices(p3, p4)
-		c22 := n6
-
+		matrix_set.res = ZeroMatrix(dimensions)
 		y := 0
 		for x := 0; x < dimensions; x++ {
 			if x < (dimensions / 2) {
-				c[x] = append(c11[x], c12[x]...)
+				matrix_set.res[x] = append(matrix_set.c11[x], matrix_set.c12[x]...)
 			} else {
-				c[x] = append(c21[y], c22[y]...)
+				matrix_set.res[x] = append(matrix_set.c21[y], matrix_set.c22[y]...)
 				y++
 			}
 		}
 
-		return c
+		return *matrix_set
 	}
 }
 
-func ClassicMatrixMult_K_First(matrix_set *MatrixFun, dimensions int) MatrixFun {
+func ClassicMatrixMult_K_First(matrix_set *MatrixFun) MatrixFun {
+	dimensions := len(matrix_set.a)
+	matrix_set.res = ZeroMatrix(dimensions)
 	for i := 0; i < dimensions; i++ {
 		for k := 0; k < dimensions; k++ {
 			for j := 0; j < dimensions; j++ {
@@ -303,6 +255,17 @@ func BuildMatrices(dimensions int, ints []int) MatrixFun {
 	}
 
 	return matrix_set
+}
+
+func ZeroMatrix(dimensions int) [][]int {
+	count := 0
+	res := [][]int{}
+	for count < dimensions {
+		y := make([]int, dimensions)
+		res = append(res, y)
+		count++
+	}
+	return res
 }
 
 // ReadInts reads whitespace-separated ints from r. If there's an error, it

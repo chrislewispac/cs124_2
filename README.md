@@ -34,5 +34,5 @@ make test //?? Oh boy! But wait. you have to have this -> https://github.com/sma
 
 ```
 ./run_classic.sh //generate time reports (this will take a long time)
-./run_strassen.sh //generate time reports (this will take a long time)
+./run_all_strassen_tests.sh //generate time reports (this will take a long time)
 ```

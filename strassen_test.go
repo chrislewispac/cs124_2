@@ -37,7 +37,7 @@ func TestSpec(t *testing.T) {
 			tf := string(b)
 			ints, _ := ReadInts(strings.NewReader(tf))
 			matrix := BuildMatrices(4, ints)
-			res := ClassicMatrixMult_K_First(&matrix, input)
+			res := ClassicMatrixMult_K_First(&matrix)
 			for i := 0; i < input; i++ {
 				for j := 0; j < input; j++ {
 					So(res.a[i][j], ShouldEqual, res.res[i][j])
@@ -51,10 +51,10 @@ func TestSpec(t *testing.T) {
 			tf := string(b)
 			ints, _ := ReadInts(strings.NewReader(tf))
 			matrix := BuildMatrices(input, ints)
-			c := StrassenMatrixMult(matrix.a, matrix.b)
+			res := StrassenMatrixMult(&matrix, 4)
 			for i := 0; i < input; i++ {
 				for j := 0; j < input; j++ {
-					So(c[i][j], ShouldEqual, matrix.a[i][j])
+					So(res.res[i][j], ShouldEqual, matrix.a[i][j])
 				}
 			}
 		})

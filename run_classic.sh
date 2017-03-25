@@ -12,4 +12,3 @@ time ./strassen 1 512 classic.txt
 time ./strassen 1 1024 classic.txt
 time ./strassen 1 2048 classic.txt
 time ./strassen 1 4096 classic.txt
-time ./strassen 1 8192 classic.txt
